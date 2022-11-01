@@ -1,0 +1,46 @@
+version: '3.9'
+
+services:
+  api:
+    build:
+      context: .
+    ports:
+      - "8000:8000"
+    restart: always
+    volumes:
+      - ./api:/api
+      - static-data:/vol/web
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py runserver 0.0.0.0:8000"
+    environment:
+      - DB_HOST=db
+      - DB_NAME=devdb
+      - DB_USER=devuser
+      - DB_PASS=changeme
+    depends_on:
+      - db
+  db:
+    image: postgres:14-alpine
+    volumes:
+      - dev-db-data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=devdb
+      - POSTGRES_USER=devuser
+      - POSTGRES_PASSWORD=dbpass123
+      - "TZ=Asia/Tokyo"
+  pgadmin:
+    image: dpage/pgadmin4
+    ports:
+      - '8080:80'
+    volumes:
+      - pg-data:/var/lib/pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
+      PGADMIN_DEFAULT_PASSWORD: adminpass
+    depends_on:
+      - db
+volumes:
+  dev-db-data:
+  static-data:
+  pg-data:
